@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "407746337140",
+    "firebase_url": "https://bizboard-c1bee.firebaseio.com",
+    "project_id": "bizboard-c1bee",
+    "storage_bucket": "bizboard-c1bee.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:407746337140:android:c2fb2e8682e5868fb87421",
+        "android_client_info": {
+          "package_name": "com.eshan.bizboard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "407746337140-ptta8s6l5nlb1lbao9edoleblefqv76o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAB3Tjt6g9mpkMx2LDcth7P9-9eFAlI_WY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "407746337140-ptta8s6l5nlb1lbao9edoleblefqv76o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

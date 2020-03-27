@@ -1,0 +1,29 @@
+name: bizboard
+description: BizBoard will provide quick pulse and tracking functionality for a specific business unit
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.1.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^0.1.2
+
+  email_validator: ^1.0.4
+  firebase_analytics: ^5.0.11
+  firebase_core: ^0.4.4
+  firebase_auth: ^0.15.5
+  cloud_functions: ^0.4.2
+  package_info: '>=0.4.0+16 <2.0.0'
+  percent_indicator: ^2.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+
+flutter:
+  uses-material-design: true
