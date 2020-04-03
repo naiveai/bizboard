@@ -3,6 +3,9 @@ import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:incrementally_loading_listview/incrementally_loading_listview.dart';
+import 'package:intl/intl.dart';
 
 void main() => runApp(App());
 
@@ -224,116 +227,178 @@ class _StatsPageState extends State<StatsPage> {
                 mainAxisSpacing: 3,
                 childAspectRatio: 0.75,
                 children: <Widget>[
-                    Card(
-                        child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                    Text.rich(
-                                        TextSpan(
-                                            text: 'Bookings',
-                                            style: Theme.of(context).textTheme.title.apply(color: Theme.of(context).primaryColorDark),
-                                            children: <TextSpan>[
-                                                TextSpan(text: ' (yearly)', style: Theme.of(context).textTheme.body1)
-                                            ],
-                                        ),
-                                    ),
-                                    Text('Achieved 10%', style: Theme.of(context).textTheme.caption),
-                                    Spacer(),
-                                    Center(
-                                        child: CircularPercentIndicator(
-                                            radius: 110.0,
-                                            lineWidth: 5.0,
-                                            percent: 0.1,
-                                            center: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: <Widget>[
-                                                    Text('20', style: Theme.of(context).textTheme.display3
-                                                            .apply(color: Theme.of(context).primaryColorDark)),
-                                                    Text('Actual', style: Theme.of(context).textTheme.caption),
-                                                ]
+                    FutureBuilder<List<DocumentSnapshot>>(
+                        future: Future.wait(
+                            [
+                                Firestore.instance.collection("Overall").document("bookings").get(),
+                                Firestore.instance.collection("Constants").document("bookings").get(),
+                            ]
+                        ),
+                        builder: (BuildContext context, AsyncSnapshot<List<DocumentSnapshot>> snapshot) {
+                            if (snapshot.hasData) {
+                                double soldPercentDouble = snapshot.data[0].data['soldPercent'];
+                                var soldPercent = soldPercentDouble.toStringAsFixed(2);
+                                var total = (snapshot.data[0].data['total'] as double).toStringAsFixed(2);
+                                int totalSold = (snapshot.data[0].data['totalSold'] as double).round();
+                                var target = snapshot.data[1].data['target'];
+
+                                return InkWell(
+                                    onTap: () {
+                                        Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder: (context) => BookingsDetailPage(),
                                             ),
-                                            progressColor: Theme.of(context).accentColor,
-                                        ),
-                                    ),
-                                    Spacer(),
-                                    Row(
-                                        children: <Widget>[
-                                            Column(
+                                        );
+                                    },
+                                    child: Card(
+                                        child: Padding(
+                                            padding: EdgeInsets.all(16.0),
+                                            child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: <Widget>[
-                                                    Text('YEL', style: Theme.of(context).textTheme.caption),
-                                                    Text('320', style: Theme.of(context).textTheme.subhead
-                                                            .apply(color: Theme.of(context).primaryColorDark))
+                                                    Text.rich(
+                                                        TextSpan(
+                                                            text: 'Bookings',
+                                                            style: Theme.of(context).textTheme.title.apply(color: Theme.of(context).primaryColorDark),
+                                                            children: <TextSpan>[
+                                                                TextSpan(text: ' (yearly)', style: Theme.of(context).textTheme.body1)
+                                                            ],
+                                                        ),
+                                                    ),
+                                                    Text('Achieved $soldPercent%', style: Theme.of(context).textTheme.caption),
+                                                    Spacer(),
+                                                    Center(
+                                                        child: CircularPercentIndicator(
+                                                            radius: 150.0,
+                                                            lineWidth: 5.0,
+                                                            percent: soldPercentDouble / 100,
+                                                            center: Column(
+                                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                                children: <Widget>[
+                                                                    Text('$totalSold', style: Theme.of(context).textTheme.display3
+                                                                            .apply(color: Theme.of(context).primaryColorDark)),
+                                                                    Text('Actual', style: Theme.of(context).textTheme.caption),
+                                                                ]
+                                                            ),
+                                                            progressColor: Theme.of(context).accentColor,
+                                                        ),
+                                                    ),
+                                                    Spacer(),
+                                                    Row(
+                                                        children: <Widget>[
+                                                            Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: <Widget>[
+                                                                    Text('YEL', style: Theme.of(context).textTheme.caption),
+                                                                    Text('$total', style: Theme.of(context).textTheme.subhead
+                                                                            .apply(color: Theme.of(context).primaryColorDark))
+                                                                ],
+                                                            ),
+                                                            Spacer(),
+                                                            Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                                                children: <Widget>[
+                                                                    Text('Target', style: Theme.of(context).textTheme.caption),
+                                                                    Text('$target', style: Theme.of(context).textTheme.subhead
+                                                                            .apply(color: Theme.of(context).primaryColorDark)),
+                                                                ],
+                                                            ),
+                                                        ],
+                                                    ),
                                                 ],
                                             ),
-                                            Spacer(),
-                                            Column(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                children: <Widget>[
-                                                    Text('Target', style: Theme.of(context).textTheme.caption),
-                                                    Text('300', style: Theme.of(context).textTheme.subhead
-                                                            .apply(color: Theme.of(context).primaryColorDark)),
-                                                ],
-                                            ),
-                                        ],
+                                        ),
                                     ),
-                                ],
-                            ),
-                        ),
+                                );
+                            } else {
+                                return Card(
+                                    child: Center(
+                                        child: CircularProgressIndicator()
+                                    ),
+                                );
+                            }
+                        }
                     ),
-                    Card(
-                        child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                    Text('Proposals', style: Theme.of(context).textTheme.title
-                                            .apply(color: Theme.of(context).primaryColorDark)),
-                                    Text('Win 10%', style: Theme.of(context).textTheme.caption),
-                                    Spacer(),
-                                    Center(
-                                        child: CircularPercentIndicator(
-                                            radius: 110.0,
-                                            lineWidth: 5.0,
-                                            percent: 0.1,
-                                            center: Column(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: <Widget>[
-                                                    Text('10', style: Theme.of(context).textTheme.display3
-                                                            .apply(color: Theme.of(context).primaryColorDark)),
-                                                    Text('In Progress', style: Theme.of(context).textTheme.caption)
-                                                ]
+                    FutureBuilder<DocumentSnapshot>(
+                        future: Firestore.instance.collection("Overall").document("proposals").get(),
+                        builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+                            if (snapshot.hasData) {
+                                double wonPercentDouble = snapshot.data.data['wonPercent'];
+                                var wonPercent = wonPercentDouble.toStringAsFixed(2);
+                                var total = snapshot.data.data['total'];
+                                var totalCompleted = snapshot.data.data['totalCompleted'];
+                                var totalInProgress = snapshot.data.data['totalInProgress'];
+
+                                return InkWell(
+                                    onTap: () {
+                                        Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder: (context) => ProposalsDetailPage(),
                                             ),
-                                            progressColor: Theme.of(context).accentColor,
-                                        ),
-                                    ),
-                                    Spacer(),
-                                    Row(
-                                        children: <Widget>[
-                                            Column(
+                                        );
+                                    },
+                                    child: Card(
+                                        child: Padding(
+                                            padding: EdgeInsets.all(16.0),
+                                            child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: <Widget>[
-                                                    Text('Completed', style: Theme.of(context).textTheme.caption),
-                                                    Text('20', style: Theme.of(context).textTheme.subhead
-                                                            .apply(color: Theme.of(context).primaryColorDark))
+                                                    Text('Proposals', style: Theme.of(context).textTheme.title
+                                                            .apply(color: Theme.of(context).primaryColorDark)),
+                                                    Text('Win $wonPercent%', style: Theme.of(context).textTheme.caption),
+                                                    Spacer(),
+                                                    Center(
+                                                        child: CircularPercentIndicator(
+                                                            radius: 150.0,
+                                                            lineWidth: 5.0,
+                                                            percent: wonPercentDouble / 100,
+                                                            center: Column(
+                                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                                children: <Widget>[
+                                                                    Text('$totalInProgress', style: Theme.of(context).textTheme.display3
+                                                                            .apply(color: Theme.of(context).primaryColorDark)),
+                                                                    Text('In Progress', style: Theme.of(context).textTheme.caption)
+                                                                ]
+                                                            ),
+                                                            progressColor: Theme.of(context).accentColor,
+                                                        ),
+                                                    ),
+                                                    Spacer(),
+                                                    Row(
+                                                        children: <Widget>[
+                                                            Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: <Widget>[
+                                                                    Text('Completed', style: Theme.of(context).textTheme.caption),
+                                                                    Text('$totalCompleted', style: Theme.of(context).textTheme.subhead
+                                                                            .apply(color: Theme.of(context).primaryColorDark))
+                                                                ],
+                                                            ),
+                                                            Spacer(),
+                                                            Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                                                children: <Widget>[
+                                                                    Text('Total', style: Theme.of(context).textTheme.caption),
+                                                                    Text('$total', style: Theme.of(context).textTheme.subhead
+                                                                            .apply(color: Theme.of(context).primaryColorDark))
+                                                                ],
+                                                            ),
+                                                        ],
+                                                    ),
                                                 ],
                                             ),
-                                            Spacer(),
-                                            Column(
-                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                children: <Widget>[
-                                                    Text('Total', style: Theme.of(context).textTheme.caption),
-                                                    Text('30', style: Theme.of(context).textTheme.subhead
-                                                            .apply(color: Theme.of(context).primaryColorDark))
-                                                ],
-                                            ),
-                                        ],
+                                        ),
                                     ),
-                                ],
-                            ),
-                        ),
+                                );
+
+                            } else {
+                                return Card(
+                                    child: Center(
+                                        child: CircularProgressIndicator()
+                                    ),
+                                );
+                            }
+                        }
                     ),
                     Card(
                         child: Padding(
@@ -453,6 +518,180 @@ class _StatsPageState extends State<StatsPage> {
     }
 }
 
+class BookingsDetailPage extends StatefulWidget {
+    BookingsDetailPage({Key key}) : super(key: key);
+
+    @override
+    _BookingsDetailPageState createState() => _BookingsDetailPageState();
+}
+
+class _BookingsDetailPageState extends State<BookingsDetailPage> {
+    bool hasMoreItems = true;
+    List<DocumentSnapshot> items = [];
+    Query baseQuery = Firestore.instance.collection("Bookings").orderBy("salesStageDate").limit(10);
+
+    @override
+    Widget build(BuildContext context) {
+        return Scaffold(
+            appBar: AppBar(
+                title: Text('BizBoard'),
+            ),
+            drawer: AppDrawer(),
+            body: FutureBuilder(
+                future: baseQuery.getDocuments().then((result) => items.addAll(result.documents)),
+                builder: (BuildContext context, snapshot) {
+                    return IncrementallyLoadingListView(
+                        hasMore: () => hasMoreItems,
+                        itemCount: () => items.length,
+                        loadMore: () async {
+                            debugPrint("loading more");
+                            List<DocumentSnapshot> newDocuments =
+                                    (await baseQuery.startAfterDocument(items.last).getDocuments()).documents;
+
+                            if (newDocuments.length == 0) {
+                                hasMoreItems = false;
+                            }
+
+                            items.addAll(newDocuments);
+                        },
+                        itemBuilder: (BuildContext context, int index) {
+                            var data = items[index].data;
+                            return Card(
+                                child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Column(
+                                        children: <Widget>[
+                                            Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                children: <Widget>[
+                                                    Expanded(child: Text("${data['accName']}", maxLines: 2,
+                                                             overflow: TextOverflow.fade,
+                                                             style: Theme.of(context).textTheme.title)),
+                                                    SizedBox(width: 10.0),
+                                                    Text("\$${data['valueWt'].toStringAsFixed(2)}M",
+                                                                style: Theme.of(context).textTheme.title),
+                                                ],
+                                            ),
+                                            SizedBox(height: 15.0),
+                                            Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                children: <Widget>[
+                                                    Expanded(child: Text("${data['oppName']}", maxLines: 2,
+                                                             overflow: TextOverflow.fade,
+                                                             style: Theme.of(context).textTheme.subhead)),
+                                                    SizedBox(width: 10.0),
+                                                    Text("Stage: ${data['stage']}", style: Theme.of(context).textTheme.subhead),
+                                                ],
+                                            ),
+                                            SizedBox(height: 10.0),
+                                            Row(
+                                                children: <Widget>[
+                                                    Expanded(child: Text("${data['pgi']}", maxLines: 2,
+                                                             overflow: TextOverflow.fade,
+                                                             style: Theme.of(context).textTheme.subhead)),
+                                                    SizedBox(width: 10.0),
+                                                    Text("${data['year']} ${data['quarter']}", style: Theme.of(context).textTheme.subhead),
+                                                ],
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            );
+                        },
+                    );
+                }
+            ),
+        );
+    }
+}
+
+class ProposalsDetailPage extends StatefulWidget {
+    ProposalsDetailPage({Key key}) : super(key: key);
+
+    @override
+    _ProposalsDetailPageState createState() => _ProposalsDetailPageState();
+}
+
+class _ProposalsDetailPageState extends State<ProposalsDetailPage> {
+    bool hasMoreItems = true;
+    List<DocumentSnapshot> items = [];
+    Query baseQuery = Firestore.instance.collection("Proposals").orderBy("endDate").limit(10);
+
+    @override
+    Widget build(BuildContext context) {
+        return Scaffold(
+            appBar: AppBar(
+                title: Text('BizBoard'),
+            ),
+            drawer: AppDrawer(),
+            body: FutureBuilder(
+                future: baseQuery.getDocuments().then((result) => items.addAll(result.documents)),
+                builder: (BuildContext context, snapshot) {
+                    return IncrementallyLoadingListView(
+                        hasMore: () => hasMoreItems,
+                        itemCount: () => items.length,
+                        loadMore: () async {
+                            List<DocumentSnapshot> newDocuments =
+                                    (await baseQuery.startAfterDocument(items.last).getDocuments()).documents;
+
+                            if (newDocuments.length == 0) {
+                                hasMoreItems = false;
+                            }
+
+                            items.addAll(newDocuments);
+                        },
+                        itemBuilder: (BuildContext context, int index) {
+                            var data = items[index].data;
+                            return Card(
+                                child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Column(
+                                        children: <Widget>[
+                                            Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                children: <Widget>[
+                                                    Expanded(child: Text("${data['oppName']}", maxLines: 2,
+                                                             overflow: TextOverflow.fade,
+                                                             style: Theme.of(context).textTheme.title)),
+                                                    SizedBox(width: 10.0),
+                                                    Text("\$${data['value'].toStringAsFixed(2)}M",
+                                                                style: Theme.of(context).textTheme.title),
+                                                ],
+                                            ),
+                                            SizedBox(height: 15.0),
+                                            Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                                children: <Widget>[
+                                                    Expanded(child: Text("${data['accName']}", maxLines: 2,
+                                                             overflow: TextOverflow.fade,
+                                                             style: Theme.of(context).textTheme.subhead)),
+                                                    SizedBox(width: 10.0),
+                                                    Text("Stage: ${data['stage']}", style: Theme.of(context).textTheme.subhead),
+                                                ],
+                                            ),
+                                            SizedBox(height: 10.0),
+                                            Row(
+                                                children: <Widget>[
+                                                    Expanded(child: Text("${data['coeLead']}", maxLines: 2,
+                                                             overflow: TextOverflow.fade,
+                                                             style: Theme.of(context).textTheme.subhead)),
+                                                    SizedBox(width: 10.0),
+                                                    Text("${DateFormat('dd MMM yyyy').format(data['endDate'].toDate())}",
+                                                            style: Theme.of(context).textTheme.subhead),
+                                                ],
+                                            ),
+                                        ],
+                                    ),
+                                ),
+                            );
+                        },
+                    );
+                }
+            ),
+        );
+    }
+}
+
 class AuthenticationPage extends StatefulWidget {
     final String emailAddress;
 
@@ -473,6 +712,7 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
             appBar: AppBar(
                 title: Text('BizBoard'),
             ),
+            drawer: AppDrawer(),
             body: Center(
                 child: ListView(
                     shrinkWrap: true,
