@@ -142,7 +142,7 @@ export const sendPasscode = functions.https.onCall(async (data, context) => {
 
     await sgMail.send({
         to: data.email,
-        from: 'bizboard@eshansingh.com',
+        from: 'noreply@bytecake.com',
         templateId: 'd-d92f3ab7837c4ab28d60892a36193cab',
         dynamicTemplateData: { timestamp, passcode }
     });
