@@ -1,4 +1,4 @@
-name: bizboard
+name: BizBoard
 description: BizBoard will provide quick pulse and tracking functionality for a specific business unit
 
 version: 1.0.0+1
@@ -27,6 +27,14 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  flutter_launcher_icons: ^0.7.4
+
+flutter_icons:
+  image_path: "assets/png/logo-small-transparent.png"
+  android: true
+  ios: true
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/

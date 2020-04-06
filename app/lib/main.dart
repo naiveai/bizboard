@@ -181,13 +181,13 @@ class AppDrawer extends StatelessWidget {
                     children: <Widget>[
                         AboutListTile(
                             icon: Icon(Icons.info),
-                            applicationIcon: FlutterLogo(),
+                            applicationIcon: Image.asset('assets/png/logo-small-transparent.png'),
                             applicationName: 'BizBoard',
                             applicationVersion: 'March 2020',
                             aboutBoxChildren: <Widget>[
                                 Text(
                                     "BizBoard provides quick pulse and tracking functionality for a specific business unit.\n\n"
-                                    "It will help to track:\n• Target, boosting, and sales\n• Pursuits and Proposals\n• Staffing plan\n"
+                                    "It'll help to track:\n• Target, boosting, and sales\n• Pursuits and Proposals\n• Staffing plan\n"
                                     "• Enablement and preparation tracking"
                                 ),
                             ],
