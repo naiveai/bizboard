@@ -35,6 +35,7 @@ class _AppState extends State<App> {
     @override
     Widget build(BuildContext context) {
       return MaterialApp(
+          debugShowCheckedModeBanner: false,
           navigatorKey: navigatorKey,
           title: 'BizBoard',
           theme: ThemeData(
